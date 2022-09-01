@@ -23,6 +23,7 @@ true > "$out"
 
 for u in "${urls[@]}"; do
 	echo -n "."
+	u=$(echo "$u" | xargs)
 	price=$(curl -s "$u" | grep -A 3 'selling-price' | grep '<span>' | sed -E 's/<\/?span>//g' | tr -d "$" | tr -d "," | xargs)
 
 	if [[ "$price" =~ [0-9]+.[0-9]+ ]]; then
