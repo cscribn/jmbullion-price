@@ -22,13 +22,24 @@ readarray -t urls < "$url_file"
 true > "$out"
 
 for u in "${urls[@]}"; do
-	echo -n "."
 	u=$(echo "$u" | xargs)
-	price=$(curl -s "$u" | grep -A 3 'selling-price' | grep '<span>' | sed -E 's/<\/?span>//g' | tr -d "$" | tr -d "," | xargs)
+	echo "URL: $u"
+
+	price_html=$(curl -s "$u" | grep -A 4 'selling-price')
+	echo "Price HTML:"
+	echo "$price_html"
+
+	price_tagless=$(echo "$price_html" | grep '<span>' | sed -E 's/<\/?span>//g')
+	echo "Price Tagless: $price_tagless"
+
+	price=$(echo "$price_tagless" | tr -d "$" | tr -d "," | xargs)
+	echo "Price Trimmed: $price"
 
 	if [[ "$price" =~ [0-9]+.[0-9]+ ]]; then
 		echo "$price" >> "$out"
 	else
 		echo "0.0" >> "$out"
 	fi
+
+	echo ""
 done
