@@ -1,45 +1,64 @@
 #!/bin/bash
 
-# properties
-unset url_file
-unset out
+# settings
+set -o errexit
+set -o nounset
+set -o pipefail
+[[ "${TRACE-0}" == "1" ]] && set -o xtrace
 
-# main method
-if [ "$1" = "" ]; then
-	echo "Missing output file" && exit 1
-else
-	out="$1"
+# variables
+declare script_name
+script_name=$(basename "${0}")
+declare url_file
+declare out_file
+
+# usage
+if [[ "${1-}" =~ ^-*h(elp)?$ ]]; then
+    echo "Usage: ./${script_name} out_file"
+    exit
 fi
 
-url_file="$(dirname $0)/urls.txt"
+# main function
+main() {
+	local out_file="$1"
+	[[ "$out_file" = "" ]] && echo "Missing out_file" && exit 1
 
-if [ ! -f "$url_file" ]; then
-	echo "Missing URL file" && exit 1
-fi
+	local url_file
+	url_file="$(dirname "$0")/urls.txt"
+	[[ ! -f "$url_file" ]] && echo "Missing URL file" && exit 1
 
-readarray -t urls < "$url_file"
+	local urls
+	readarray -t urls < "$url_file"
 
-true > "$out"
+	true > "$out_file"
 
-for u in "${urls[@]}"; do
-	u=$(echo "$u" | xargs)
-	echo "URL: $u"
+	local url
+	for url in "${urls[@]}"; do
+		# trim url
+		url=$(echo "$url" | xargs)
+		echo "URL: $url"
 
-	price_html=$(curl -s "$u" | grep -A 4 'selling-price')
-	echo "Price HTML:"
-	echo "$price_html"
+		local price_html
+		price_html=$(curl -s "$url" | grep -A 4 "selling-price")
+		echo "Price HTML:"
+		echo "$price_html"
 
-	price_tagless=$(echo "$price_html" | grep '<span>' | sed -E 's/<\/?span>//g')
-	echo "Price Tagless: $price_tagless"
+		local price_tagless
+		price_tagless=$(echo "$price_html" | grep "<span>" | sed -E "s/<\/?span>//g")
+		echo "Price Tagless: $price_tagless"
 
-	price=$(echo "$price_tagless" | tr -d "$" | tr -d "," | xargs)
-	echo "Price Trimmed: $price"
+		local price
+		price=$(echo "$price_tagless" | tr -d "$" | tr -d "," | xargs)
+		echo "Price Trimmed: $price"
 
-	if [[ "$price" =~ [0-9]+.[0-9]+ ]]; then
-		echo "$price" >> "$out"
-	else
-		echo "0.0" >> "$out"
-	fi
+		if [[ "$price" =~ [0-9]+.[0-9]+ ]]; then
+			echo "$price" >> "$out_file"
+		else
+			echo "0.0" >> "$out_file"
+		fi
 
-	echo ""
-done
+		echo ""
+	done
+}
+
+main "${@}"
