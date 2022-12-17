@@ -24,7 +24,7 @@ main() {
 	[[ "$out_file" = "" ]] && echo "Missing out_file" && exit 1
 
 	local url_file
-	url_file="$(dirname "$0")/urls.txt"
+	url_file="$(dirname "${0}")/urls.txt"
 	[[ ! -f "$url_file" ]] && echo "Missing URL file" && exit 1
 
 	local urls
