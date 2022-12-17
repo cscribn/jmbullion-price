@@ -9,7 +9,7 @@ set -o pipefail
 # variables
 declare script_name
 script_name=$(basename "${0}")
-declare url_file
+declare url_file="urls.txt"
 declare out_file
 
 # usage
@@ -23,12 +23,12 @@ main() {
 	local out_file="$1"
 	[[ "$out_file" = "" ]] && echo "Missing out_file" && exit 1
 
-	local url_file
-	url_file="$(dirname "${0}")/urls.txt"
-	[[ ! -f "$url_file" ]] && echo "Missing URL file" && exit 1
+	local url_file_full
+	url_file_full="$(dirname "${0}")/${url_file}"
+	[[ ! -f "$url_file_full" ]] && echo "Missing ${url_file}" && exit 1
 
 	local urls
-	readarray -t urls < "$url_file"
+	readarray -t urls < "$url_file_full"
 
 	true > "$out_file"
 
