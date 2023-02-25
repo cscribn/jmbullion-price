@@ -2,14 +2,15 @@
 
 # settings
 set -o errexit
-set -o nounset
 set -o pipefail
 [[ "${TRACE-0}" == "1" ]] && set -o xtrace
 
 # variables
 declare script_name
 script_name=$(basename "${0}")
+declare gold_spot
 declare in_file="in.txt"
+declare silver_spot
 declare out_file
 
 # usage
@@ -19,12 +20,43 @@ if [[ "${1-}" =~ ^-*h(elp)?$ ]]; then
 fi
 
 # helper functions
+get_gold() {
+	[[ -n "$gold_spot" ]] && return 0
+
+	local url="$1"
+
+	# trim url
+	url=$(echo "$url" | xargs)
+
+	local gold_html
+	gold_html=$(curl -s "$url" | grep "Gold Ask")
+	echo "Gold HTML:"
+	echo "$gold_html"
+
+	local gold_tagless
+	gold_tagless=$(echo "$gold_html" | sed -En 's/.*\"price\">\$([^<]*)<.*/\1/p')
+	echo "Gold Tagless: $gold_tagless"
+
+	gold_spot=$(echo "$gold_tagless" | tr -d "$" | tr -d "," | xargs)
+	echo "Gold Trimmed: $gold_spot"
+}
+
 get_price() {
 	local url="$1"
 
 	# trim url
 	url=$(echo "$url" | xargs)
 	echo "URL: $url"
+
+	local metal="$2"
+
+	# trim metal
+	metal=$(echo "$metal" | xargs)
+
+	local oz="$3"
+
+	# trim oz
+	oz=$(echo "$oz" | xargs)
 
 	local price_html
 	price_html=$(curl -s "$url" | grep -A 4 "selling-price")
@@ -42,14 +74,45 @@ get_price() {
 	if [[ "$price" =~ [0-9]+.[0-9]+ ]]; then
 		echo "$price" >> "$out_file"
 	else
-		echo "0.0" >> "$out_file"
+		local spot_price
+
+		if [[ "$metal" = "gold" ]]; then
+			spot_price="$gold_spot"
+		elif [[ "$metal" = "silver" ]]; then
+			spot_price="$silver_spot"
+		else
+			echo "Metal not supported: ${metal}"
+			exit 1
+		fi
+
+		local oz_price
+		oz_price=$(awk "BEGIN {print ${oz}*${spot_price}}" | xargs printf "%.2f")
+		echo "Spot Price: $oz_price"
+		echo "$oz_price" >> "$out_file"
 	fi
 
 	echo ""
 }
 
-get_spot() {
-:
+get_silver() {
+	[[ -n "$silver_spot" ]] && return 0
+
+	local url="$1"
+
+	# trim url
+	url=$(echo "$url" | xargs)
+
+	local silver_html
+	silver_html=$(curl -s "$url" | grep "Silver Ask")
+	echo "Silver HTML:"
+	echo "$silver_html"
+
+	local silver_tagless
+	silver_tagless=$(echo "$silver_html" | sed -En 's/.*\"price\">\$([^<]*)<.*/\1/p')
+	echo "Silver Tagless: $silver_tagless"
+
+	silver_spot=$(echo "$silver_tagless" | tr -d "$" | tr -d "," | xargs)
+	echo "Silver Trimmed: $silver_spot"
 }
 
 # main function
@@ -70,7 +133,9 @@ main() {
 	local line
 	for line in "${lines[@]}"; do
 		IFS=\, read -r -a line_array <<<"$line"
-		get_price "${line_array[0]}"
+		get_gold "${line_array[0]}"
+		get_silver "${line_array[0]}"
+		get_price "${line_array[0]}" "${line_array[1]}" "${line_array[2]}"
 	done
 }
 
