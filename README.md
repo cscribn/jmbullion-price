@@ -8,7 +8,7 @@ Note: supported metal types at this time are "gold" and "silver".
 
 ## Usage
 
-Rename `in.example.txt` to `in.txt`.\
+Rename `in.sample.txt` to `in.txt`.\
 Add/update/delete the URLs, metal type, and ounces inside in.txt.
 
 ```shell
