@@ -34,7 +34,7 @@ get_gold() {
 	echo "$gold_html"
 
 	local gold_tagless
-	gold_tagless=$(echo "$gold_html" | sed -En 's/.*\"price\">\$([^<]*)<.*/\1/p')
+	gold_tagless=$(echo "$gold_html" | sed -En 's/.*\"price\" data-nosnippet>\$([^<]*)<.*/\1/p')
 	echo "Gold Tagless: $gold_tagless"
 
 	gold_spot=$(echo "$gold_tagless" | tr -d "$" | tr -d "," | xargs)
@@ -108,7 +108,7 @@ get_silver() {
 	echo "$silver_html"
 
 	local silver_tagless
-	silver_tagless=$(echo "$silver_html" | sed -En 's/.*\"price\">\$([^<]*)<.*/\1/p')
+	silver_tagless=$(echo "$silver_html" | sed -En 's/.*\"price\" data-nosnippet>\$([^<]*)<.*/\1/p')
 	echo "Silver Tagless: $silver_tagless"
 
 	silver_spot=$(echo "$silver_tagless" | tr -d "$" | tr -d "," | xargs)
