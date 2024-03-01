@@ -8,9 +8,9 @@ Note: supported metal types at this time are "gold" and "silver".
 
 ## Usage
 
-Rename `in.sample.txt` to `in.txt`.\
-Add/update/delete the URLs, metal type, and ounces inside in.txt.
+Rename `in.sample.csv` to `in.csv`.\
+Add/update/delete the URLs, metal type, and ounces inside in.csv.
 
 ```shell
-./jmbullion-price.sh out.txt
+./jmbullion-price.sh out.csv
 ```
