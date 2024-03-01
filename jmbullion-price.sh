@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # settings
-set -o errexit
 set -o pipefail
 [[ "${TRACE-0}" == "1" ]] && set -o xtrace
 
 # variables
 declare script_name
 script_name=$(basename "${0}")
+declare -a curl_cmd=(curl -s -A "Mozilla")
 declare gold_spot
 declare in_file="in.txt"
 declare silver_spot
@@ -29,7 +29,7 @@ get_gold() {
 	url=$(echo "$url" | xargs)
 
 	local gold_html
-	gold_html=$(curl -s "$url" | grep "Gold Ask")
+	gold_html=$("${curl_cmd[@]}" "$url" | grep "Gold Ask")
 	echo "Gold HTML:"
 	echo "$gold_html"
 
@@ -59,7 +59,7 @@ get_price() {
 	oz=$(echo "$oz" | xargs)
 
 	local price_html
-	price_html=$(curl -s "$url" | grep -A 4 "selling-price")
+	price_html=$("${curl_cmd[@]}" "$url" | grep -A 4 "selling-price")
 	echo "Price HTML:"
 	echo "$price_html"
 
@@ -103,7 +103,7 @@ get_silver() {
 	url=$(echo "$url" | xargs)
 
 	local silver_html
-	silver_html=$(curl -s "$url" | grep "Silver Ask")
+	silver_html=$("${curl_cmd[@]}" "$url" | grep "Silver Ask")
 	echo "Silver HTML:"
 	echo "$silver_html"
 
