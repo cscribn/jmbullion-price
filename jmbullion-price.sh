@@ -9,7 +9,7 @@ declare script_name
 script_name=$(basename "${0}")
 declare -a curl_cmd=(curl -s -A "Mozilla")
 declare gold_spot
-declare in_file="in.txt"
+declare in_file="in.csv"
 declare silver_spot
 declare out_file
 
